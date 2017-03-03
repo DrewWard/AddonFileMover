@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Security.AccessControl;
 
 namespace AddonFileMover
 {
@@ -18,47 +19,101 @@ namespace AddonFileMover
 
         static void Main(string[] args)
         {
-            var p = new Program();
-            string start = p.SearchFolders();
+            SearchFolders(@"c:\");
+            //    var p = new Program();
+            //    string start = p.SearchFolders();
+
+            //string path = @"c:\";
+            //p.ApplyAllFiles(path, SearchF);
+
         }
 
-        public string SearchFolders()
+        public static void SearchFolders(string root)
         {
-            try {
-                //search file system to find the addon folder in the World of Warcraft folder.
-                String searchDir = @"c:\";
-                String searchPattern = "ElvUI*";
+            Stack<string> dirs = new Stack<string>(20);
+            string[] files = null;
 
-                DirectoryInfo di = new DirectoryInfo(searchDir);
-                DirectoryInfo[] directories = di.GetDirectories(searchPattern, SearchOption.AllDirectories);
+            if (!System.IO.Directory.Exists(root))
+            {
+                throw new ArgumentException();
+            }
+            dirs.Push(root);
 
-                FileInfo[] files = di.GetFiles(searchPattern, SearchOption.AllDirectories);
-                
-                Console.WriteLine("The number of directories " + files.Length);
-                foreach (DirectoryInfo dir in directories)
+            while (dirs.Count > 0)
+            {
+                string currentDir = dirs.Pop();
+                string[] subDirs;
+                try
                 {
-                    Console.WriteLine(dir.FullName, dir.LastWriteTime);
+                    subDirs = Directory.GetDirectories(currentDir);
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    Console.WriteLine(e.Message);
+                    //return e.Message;
+                    continue;
                 }
 
-                Console.WriteLine();
-                return directories.Length.ToString();
-                
+                try
+                {
+                    files = Directory.GetFiles(currentDir);
+                }
+                catch (UnauthorizedAccessException e)
+                {
+                    Console.WriteLine(e.Message);
+                    //return e.Message;
+                    continue;
+                }
+
+                foreach (string file in subDirs)
+                {
+                    try
+                    {
+                        //string searchDir = @"c:\";
+                        string searchPattern = "ElvUI*";
+
+                        //subDirs.SkipWhile(subDirs = @"ms");
+
+                        DirectoryInfo di = new DirectoryInfo(file);
+
+                        DirectoryInfo[] directories = di.GetDirectories(searchPattern);
+                        FileInfo[] fi = di.GetFiles(searchPattern);
+
+                        Console.WriteLine("The number of directories " + files.Length);
+
+                        foreach (DirectoryInfo dir in directories)
+                        {
+                            Console.WriteLine(dir.FullName, dir.LastWriteTime);
+                        }
+                        //Console.ReadLine();
+                        //return file;
+                    }
+                    catch (FileNotFoundException e)
+                    {
+                        Console.WriteLine(e.Message);
+                        //return e.Message;
+                        continue;
+                    }
+                }
+
+                foreach (string str in subDirs)
+                {
+                    dirs.Push(str);
+                }
 
             }
-            catch (UnauthorizedAccessException)
-            {
-                FileAttributes attr = (new FileInfo(searchDir)).Attributes;
-                Console.Write("UnAuthorizedException: Unable to access file. ");
-                if ((attr & FileAttributes.ReadOnly) > 0)
-                    Console.Write("The file is read-only. ");
-            }
+
+            //search file system to find the addon folder in the World of Warcraft folder.
+
+
         }
-            
-           // Console.ReadLine();
-            //return Console.ReadLine();
-            //if I can't find the folder then ask for the file path.
-            //pass the file path to GetGitFiles
-        
+
+
+        // Console.ReadLine();
+        //return Console.ReadLine();
+        //if I can't find the folder then ask for the file path.
+        //pass the file path to GetGitFiles
+
 
         static void GetGitFiles()
         {
