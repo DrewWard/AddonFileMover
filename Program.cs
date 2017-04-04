@@ -47,7 +47,7 @@ namespace AddonFileMover
                 {
                     subDirs = Directory.GetDirectories(currentDir);
                 }
-                catch (UnauthorizedAccessException e)
+                catch (Exception e)//UnauthorizedAccessException e)
                 {
                     Console.WriteLine(e.Message);
                     //return e.Message;
@@ -75,16 +75,22 @@ namespace AddonFileMover
                         //subDirs.SkipWhile(subDirs = @"ms");
 
                         DirectoryInfo di = new DirectoryInfo(file);
-
-                        DirectoryInfo[] directories = di.GetDirectories(searchPattern);
-                        FileInfo[] fi = di.GetFiles(searchPattern);
-
-                        Console.WriteLine("The number of directories " + files.Length);
-
-                        foreach (DirectoryInfo dir in directories)
+                        
+                        try
                         {
-                            Console.WriteLine(dir.FullName, dir.LastWriteTime);
+                            DirectoryInfo[] directories = di.GetDirectories(searchPattern);
+                            FileInfo[] fi = di.GetFiles(searchPattern);
+                            
+                            //Console.WriteLine("The number of directories " + files.Length);
+
+                            foreach (DirectoryInfo dir in directories)
+                            {
+
+                                Console.WriteLine(dir.FullName, dir.LastWriteTime);
+
+                            }
                         }
+                        catch { continue; }
                         //Console.ReadLine();
                         //return file;
                     }
